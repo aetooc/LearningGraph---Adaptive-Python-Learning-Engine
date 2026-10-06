@@ -3,8 +3,9 @@
 Implementation date: 2026-10-06.
 
 The backend, migrations, required React/TypeScript/Vite frontend, Docker files,
-focused tests, README, and developer demo are written. The full definition of
-done is **not yet verified**.
+focused tests, README, and developer demo are written. The user completed a live
+frontend screenshot capture, and the three images have been visually reviewed.
+The full definition of done is **not yet verified**.
 
 ## Checks completed
 
@@ -92,6 +93,40 @@ that FastAPI is unavailable in the agent's local environment. No browser is
 available through the enabled browser-control tools, and the user's local Docker
 API remains inaccessible. Neither a frontend lockfile nor a successful live
 frontend/backend browser flow was fabricated.
+
+## README screenshot capture
+
+`scripts/capture_frontend.py` is an isolated uv/Playwright script. It opens the
+actual frontend, creates a fresh Alice demo learner, captures the study plan,
+generates a lesson, submits an answer, checks the REST refresh calls, and then
+inserts three PNGs into the README. It checks that the public lesson response
+contains three questions and excludes private grading fields. It neither mocks
+API responses nor calculates grading, mastery, or recommendations.
+
+Python syntax, command-line help, repeatable gallery replacement, and the
+missing-marker guard pass local checks. Capture fails cleanly before any learner
+creation when the frontend is unreachable. Direct capture remains blocked in the
+agent environment: browser-control tools expose no browser, localhost ports
+5173/8000 are unreachable here, Chromium launches fail on restricted socket
+operations, and Firefox launches fail on restricted namespaces/runtime paths.
+
+Run on the user's machine once the frontend and provider work:
+
+```bash
+uv run scripts/capture_frontend.py
+```
+
+The user ran the capture successfully. All three real PNGs are present under
+`docs/screenshots/` and linked in the README. Visual review confirms Alice (#2),
+the initial Variables recommendation, the generated "Understanding Variables in
+Python" lesson, and a correct recorded answer. The feedback card and Variables
+progress row both show 10% mastery, with one attempt in the progress row.
+
+The successful script also checked three public lesson questions, absence of
+private grading fields in that response, and successful study-plan/progress
+requests after submission. Incorrect-answer feedback, threshold progression to
+a different recommendation, the full locked build, and the remaining backend
+acceptance checks still require their separate verification.
 
 ## Remaining acceptance checks
 

@@ -6,7 +6,33 @@ An LLM drafts short lessons, examples, three multiple-choice questions, and expl
 
 This portfolio project demonstrates REST APIs, relational modeling, graph traversal, transactions, and structured LLM integration within a modular monolith. It deliberately uses a simple learner model that can be explained in an interview.
 
-**Build verification:** see [VERIFICATION.md](VERIFICATION.md). The Python lockfile is present; full frontend build, browser flow, and API/PostgreSQL checks remain pending in the restricted agent environment.
+**Verification:** the captured frontend flow below demonstrates learner creation, lesson generation, answer submission, and refreshed progress. Remaining full-build and API/PostgreSQL checks are tracked in [VERIFICATION.md](VERIFICATION.md).
+
+<!-- frontend-screenshots:start -->
+## Frontend walkthrough
+
+Captured from the running React frontend, using the actual FastAPI endpoints.
+The capture creates a fresh Alice demo learner; lesson content and grading come
+from the backend.
+
+**1. Create Alice and load her study plan.** The UI shows the recommended concept,
+available and locked concepts, and current mastery.
+
+![Alice's study plan and recommended Python concept](docs/screenshots/01-study-plan.png)
+
+**2. Generate a lesson.** Read the explanation and examples, then answer the
+multiple-choice practice questions.
+
+![Generated Python lesson and multiple-choice practice](docs/screenshots/02-lesson-and-practice.png)
+
+**3. Submit an answer.** This capture returned **correct**. The UI displays
+the backend's grading result and refreshed learner state; an incorrect answer
+also displays the backend's feedback.
+
+![Answer result, feedback, and refreshed learner progress](docs/screenshots/03-feedback-and-progress.png)
+
+Regenerate these images with `uv run scripts/capture_frontend.py`.
+<!-- frontend-screenshots:end -->
 
 ## Why it exists
 
