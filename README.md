@@ -31,7 +31,6 @@ also displays the backend's feedback.
 
 ![Answer result, feedback, and refreshed learner progress](docs/screenshots/03-feedback-and-progress.png)
 
-Regenerate these images with `uv run scripts/capture_frontend.py`.
 <!-- frontend-screenshots:end -->
 
 ## Why it exists
