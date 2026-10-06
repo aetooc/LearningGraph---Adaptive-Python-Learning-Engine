@@ -12,4 +12,4 @@ RUN useradd --uid 10001 --create-home learning \
     && chown -R learning:learning /app /tmp/uv-cache
 USER learning
 EXPOSE 8000
-CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && uv run --no-sync python -m app.db.seed && uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "uv run --no-sync alembic upgrade head && uv run --no-sync python -m app.db.seed && uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

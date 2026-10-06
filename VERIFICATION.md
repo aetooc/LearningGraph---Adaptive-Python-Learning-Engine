@@ -9,7 +9,7 @@ The full definition of done is **not yet verified**.
 
 ## Checks completed
 
-- 47 core pytest cases pass using installed Python 3.14, SQLAlchemy, Pydantic, and settings support.
+- 52 core pytest cases pass using installed Python 3.14, SQLAlchemy, Pydantic, and settings support.
 - Graph seeding is idempotent, produces 11 concepts and 13 edges, and rejects cycles.
 - Recorded attempts demonstrate Alice reaching 0.75 after eight correct answers
   and one incorrect answer; Alice is recommended data-types while Bob remains on variables.
@@ -67,7 +67,7 @@ uv run --no-project --python /home/aetooc/anaconda3/bin/python3 \
   python -m pytest /home/aetooc/Project/LearningGraph/tests -q -ra
 ```
 
-Result: **47 passed, 3 skipped**. Two module-level skips are the HTTP API tests
+Result: **52 passed, 3 skipped**. Two module-level skips are the HTTP API tests
 and OpenAPI smoke test because FastAPI is unavailable; the third skip is the
 opt-in PostgreSQL test because `TEST_DATABASE_URL` is unset. This result does
 not establish that the complete locked application runs.
@@ -127,6 +127,24 @@ private grading fields in that response, and successful study-plan/progress
 requests after submission. Incorrect-answer feedback, threshold progression to
 a different recommendation, the full locked build, and the remaining backend
 acceptance checks still require their separate verification.
+
+## Free hosting preparation
+
+`DEPLOYMENT.md` documents Vercel for the compiled React frontend, Render Free
+for the FastAPI Docker service, and Neon Free for PostgreSQL. The backend now
+normalizes standard hosted PostgreSQL URLs to psycopg 3, reads a JSON list of
+`CORS_ORIGINS`, and binds to a hosting platform's `PORT` with an 8000 fallback.
+
+Five new configuration cases pass, preserving encoded credentials, SSL/query
+parameters, explicit driver URLs, SQLite test URLs, and the configured frontend
+origin. Compose correctly forwards JSON CORS origins using dummy credentials.
+A shell check of the Docker startup command selects 8000 by default and 10000
+when `PORT` is assigned. Changed Python files parse successfully.
+
+A HTTP smoke test is added for allowed and rejected cross-origin preflight
+requests, but it remains part of the skipped FastAPI module in this environment.
+No cloud accounts, public services, or résumé URL have been created; deployment
+and verification of the public origin remain to be completed in the dashboards.
 
 ## Remaining acceptance checks
 

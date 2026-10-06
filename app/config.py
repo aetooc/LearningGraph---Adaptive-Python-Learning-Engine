@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,6 +15,16 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr | None = None
     groq_model: str | None = None
     mastery_threshold: float = Field(default=0.70, gt=0, le=1)
+    cors_origins: list[str] = Field(default_factory=list)
+
+    @field_validator("database_url")
+    @classmethod
+    def select_installed_postgres_driver(cls, value: str) -> str:
+        # Hosted databases provide generic URLs; this project installs psycopg 3.
+        for scheme in ("postgres://", "postgresql://"):
+            if value.startswith(scheme):
+                return "postgresql+psycopg://" + value[len(scheme):]
+        return value
 
 
 @lru_cache

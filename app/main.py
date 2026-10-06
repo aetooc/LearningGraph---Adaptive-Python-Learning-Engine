@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from app.api import attempts, concepts, learners, learning, lessons
+from app.config import get_settings
 from app.errors import ApplicationError
 
 app = FastAPI(
@@ -10,6 +12,15 @@ app = FastAPI(
     description="Deterministic progression through a Python prerequisite graph; "
     "LLMs draft lessons and explain mistakes.",
 )
+
+cors_origins = get_settings().cors_origins
+if cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type"],
+    )
 
 
 @app.exception_handler(ApplicationError)
