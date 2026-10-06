@@ -1,0 +1,26 @@
+[project]
+name = "adaptive-python-learning"
+version = "0.1.0"
+description = "A small Python learning backend with deterministic progression and validated LLM content."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic",
+    "fastapi",
+    "openai",
+    "psycopg[binary]",
+    "pydantic-settings",
+    "sqlalchemy",
+    "uvicorn[standard]",
+]
+
+[dependency-groups]
+dev = [
+    "httpx",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["postgres: isolated PostgreSQL migration and concurrency integration checks"]
