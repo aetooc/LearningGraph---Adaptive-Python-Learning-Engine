@@ -6,8 +6,6 @@ I kept the learning rules in the backend. Groq or OpenAI generates lessons and f
 
 Built with **Python, FastAPI, PostgreSQL, SQLAlchemy, React, TypeScript, and Vite**. Database migrations use Alembic, and Python dependencies are managed with uv.
 
-[Deployment guide](DEPLOYMENT.md) · [Verification notes](VERIFICATION.md)
-
 <!-- frontend-screenshots:start -->
 ## Screenshots
 
