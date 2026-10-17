@@ -53,7 +53,9 @@ If your settings are in an `.env` file one directory above the project, use:
 docker compose --env-file ../.env up --build -d
 ```
 
-For OpenAI, set `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` instead. The selected model must support strict Structured Outputs. Check the provider's model support before changing it: [Groq](https://console.groq.com/docs/structured-outputs), [OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses).
+For OpenAI, set `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and `OPENAI_MODEL` instead. Both providers use Chat Completions with Pydantic Structured Outputs. The selected model must support strict Structured Outputs. Check the provider's model support before changing it: [Groq](https://console.groq.com/docs/structured-outputs), [OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat).
+
+`Settings.llm` resolves the selected provider's key, model, and base URL using `LLM_PROVIDER`. Base URLs default to the provider's public API; set `OPENAI_BASE_URL` or `GROQ_BASE_URL` to override the selected provider's endpoint.
 
 Provider keys stay in the backend. Never put them in `VITE_*` variables or commit them.
 
@@ -207,3 +209,5 @@ This is a demo with no authentication: learner IDs are trusted, so it is not sui
 Validation checks the shape of generated content, not whether every explanation or answer key is correct. Grading follows the stored key. Content review would be needed before using this for real teaching.
 
 The mastery score is a simple practice rule, not a validated measure of learning. The project currently covers Python Fundamentals and multiple-choice questions only.
+
+For a file-by-file walkthrough, request traces, Mermaid diagrams, and interview questions, see the [backend and AI integration interview guide](docs/BACKEND_AI_INTERVIEW_GUIDE.md).

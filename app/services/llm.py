@@ -22,39 +22,32 @@ class OpenAIGenerator:
         self.settings = settings
 
     def _parse(self, instructions: str, context: dict, schema: type[BaseModel]):
-        if self.settings.llm_provider == "groq":
-            api_key = self.settings.groq_api_key
-            model = self.settings.groq_model
-            base_url = "https://api.groq.com/openai/v1"
-            required_settings = "GROQ_API_KEY and GROQ_MODEL"
-        else:
-            api_key = self.settings.openai_api_key
-            model = self.settings.openai_model
-            base_url = "https://api.openai.com/v1"
-            required_settings = "OPENAI_API_KEY and OPENAI_MODEL"
-        if not api_key or not api_key.get_secret_value() or not model:
-            raise ApplicationError(503, f"Set {required_settings} to enable generation.")
+        config = self.settings.llm
+        if not config.api_key or not config.api_key.get_secret_value() or not config.model:
+            raise ApplicationError(
+                503, f"Set {config.api_key_setting} and {config.model_setting} to enable generation.",
+            )
         from openai import APIConnectionError, APITimeoutError, OpenAI, OpenAIError
 
         try:
             # Disable SDK retries: the application owns the single lesson-validation retry.
             with OpenAI(
-                api_key=api_key.get_secret_value(), base_url=base_url,
+                api_key=config.api_key.get_secret_value(), base_url=config.base_url,
                 timeout=30.0, max_retries=0,
             ) as client:
-                response = client.responses.parse(
-                    model=model,
-                    input=[
+                response = client.chat.completions.parse(
+                    model=config.model,
+                    messages=[
                         {"role": "system", "content": instructions},
                         {"role": "user", "content": json.dumps(context)},
                     ],
-                    text_format=schema,
+                    response_format=schema,
                     store=False,
                 )
         except OpenAIError as error:
             # SDK messages/bodies can contain credentials or generated answer keys.
             # Log only provider, HTTP status, and SDK exception type.
-            provider = "Groq" if self.settings.llm_provider == "groq" else "OpenAI"
+            provider = config.name
             status = getattr(error, "status_code", None)
             logger.warning(
                 "Content provider request failed: provider=%s status=%s error=%s",
@@ -65,8 +58,7 @@ class OpenAIGenerator:
             elif isinstance(error, APIConnectionError):
                 detail = f"Cannot connect to {provider}. Check the API container's internet connection."
             elif status == 401:
-                key_name = "GROQ_API_KEY" if self.settings.llm_provider == "groq" else "OPENAI_API_KEY"
-                detail = f"{provider} rejected the API key. Check {key_name} and recreate the API container."
+                detail = f"{provider} rejected the API key. Check {config.api_key_setting} and recreate the API container."
             elif status == 403:
                 detail = f"{provider} denied access. Check your account's model permissions."
             elif status == 404:
@@ -81,9 +73,12 @@ class OpenAIGenerator:
             else:
                 detail = f"{provider} is unavailable. Try again later."
             raise ApplicationError(502, detail) from error
-        if response.output_parsed is None:
+        if not response.choices:
             raise ValueError("Provider returned no structured content.")
-        return response.output_parsed
+        message = response.choices[0].message
+        if message.refusal or message.parsed is None:
+            raise ValueError("Provider returned no structured content.")
+        return message.parsed
 
     def lesson(self, context: dict):
         return self._parse(
