@@ -8,11 +8,14 @@ from app.graph import topological_order
 from app.models import Concept, Learner, LearnerMastery, Prerequisite
 from app.schemas import ConceptResponse, StudyPlan
 
-
+# loads concepts and their prerequisites from the database and returns them
 def load_curriculum(db: Session) -> list[ConceptResponse]:
     required: dict[int, list[int]] = {}
     for edge in db.scalars(select(Prerequisite)):
-        required.setdefault(edge.concept_id, []).append(edge.prerequisite_id)
+        if edge.concept_id not in required:
+            required[edge.concept_id] = []
+
+        required[edge.concept_id].append(edge.prerequisite_id)
     return [
         ConceptResponse(
             id=concept.id, slug=concept.slug, name=concept.name,
@@ -22,7 +25,7 @@ def load_curriculum(db: Session) -> list[ConceptResponse]:
         for concept in db.scalars(select(Concept).order_by(Concept.slug))
     ]
 
-
+# loads the learning state for a given learner, including the curriculum and their mastery scores
 def load_learning_state(
     db: Session, learner_id: int
 ) -> tuple[list[ConceptResponse], dict[int, LearnerMastery]]:
@@ -37,7 +40,7 @@ def load_learning_state(
     }
     return concepts, mastery
 
-
+# puts prerequisites before the concepts that depend on them.
 def ordered_concepts(concepts: list[ConceptResponse]) -> list[ConceptResponse]:
     by_id = {concept.id: concept for concept in concepts}
     ordered_ids = topological_order(
@@ -46,24 +49,39 @@ def ordered_concepts(concepts: list[ConceptResponse]) -> list[ConceptResponse]:
     )
     return [by_id[concept_id] for concept_id in ordered_ids]
 
-
+# unmastered concepts whose prerequisites are all mastered, preserving the calculated order.
 def get_eligible_concepts(
     concepts: list[ConceptResponse], scores: dict[int, Decimal], threshold: Decimal
 ) -> list[ConceptResponse]:
-    return [
-        concept for concept in ordered_concepts(concepts)
-        if scores.get(concept.id, Decimal("0")) < threshold
-        and all(scores.get(required, Decimal("0")) >= threshold for required in concept.prerequisite_ids)
-    ]
+    eligible = []
 
+    for concept in ordered_concepts(concepts):
+        concept_score = scores.get(concept.id, Decimal("0"))
 
+        if concept_score < threshold:
+            prerequisites_mastered = True
+
+            for prerequisite_id in concept.prerequisite_ids:
+                prerequisite_score = scores.get(prerequisite_id, Decimal("0"))
+                is_mastered = prerequisite_score >= threshold
+
+                if not is_mastered:
+                    prerequisites_mastered = False
+                    break
+
+            if prerequisites_mastered:
+                eligible.append(concept)
+
+    return eligible
+
+# the first eligible concept,
 def get_next_concept(
     concepts: list[ConceptResponse], scores: dict[int, Decimal], threshold: Decimal
 ) -> ConceptResponse | None:
     eligible = get_eligible_concepts(concepts, scores, threshold)
     return eligible[0] if eligible else None
 
-
+# StudyPlan containing mastered, available, and locked concepts, the next recommendation, and completion status.
 def build_study_plan(
     concepts: list[ConceptResponse], scores: dict[int, Decimal], threshold: Decimal
 ) -> StudyPlan:
